@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function SidePanel({ node, onUpdate }) {
   const [form, setForm] = useState({
@@ -10,68 +10,49 @@ export default function SidePanel({ node, onUpdate }) {
   useEffect(() => {
     if (node) {
       setForm({
-        title: node.title || "",
-        summary: node.summary || "",
-        details: node.details || "",
+        title: node.data.title || "",
+        summary: node.data.summary || "",
+        details: node.data.details || "",
       });
     }
   }, [node]);
 
   if (!node) {
     return (
-      <div className="panel">
-        <h3 className="panel-title">Node Details</h3>
-        <p className="panel-muted">Select a node to view or edit details</p>
+      <div className="side-panel">
+        <p>Select a node to see details</p>
       </div>
     );
   }
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSave = () => {
-    onUpdate(node.id, form);
+  const handleChange = (key, value) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    onUpdate(node.id, { [key]: value });
   };
 
   return (
-    <div className="panel">
-      <h3 className="panel-title">Edit Node</h3>
+    <div className="side-panel">
+      <h3>Edit Node</h3>
 
-      <div className="form-group">
-        <label>Title</label>
-        <input
-          name="title"
-          value={form.title}
-          onChange={handleChange}
-          placeholder="Enter node title"
-        />
-      </div>
+      <label>Title</label>
+      <input
+        value={form.title}
+        onChange={(e) => handleChange("title", e.target.value)}
+      />
 
-      <div className="form-group">
-        <label>Summary</label>
-        <input
-          name="summary"
-          value={form.summary}
-          onChange={handleChange}
-          placeholder="Short summary (shown on hover)"
-        />
-      </div>
+      <label>Summary</label>
+      <textarea
+        rows={3}
+        value={form.summary}
+        onChange={(e) => handleChange("summary", e.target.value)}
+      />
 
-      <div className="form-group">
-        <label>Details</label>
-        <textarea
-          name="details"
-          value={form.details}
-          onChange={handleChange}
-          rows={5}
-          placeholder="Detailed explanation of this node"
-        />
-      </div>
-
-      <button className="save-btn" onClick={handleSave}>
-        Save Changes
-      </button>
+      <label>Details</label>
+      <textarea
+        rows={5}
+        value={form.details}
+        onChange={(e) => handleChange("details", e.target.value)}
+      />
     </div>
   );
 }

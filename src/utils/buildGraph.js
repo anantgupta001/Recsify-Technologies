@@ -1,35 +1,34 @@
-import { hierarchy, tree } from "d3-hierarchy";
-
-export function buildGraph(data) {
-  const root = hierarchy(data);
-
-  const treeLayout = tree()
-    .nodeSize([100, 250]); // [vertical, horizontal]
-
-  treeLayout(root);
-
+export function buildGraph(root) {
   const nodes = [];
   const edges = [];
 
-  root.each((node) => {
+  const traverse = (node, parentId = null, depth = 0) => {
     nodes.push({
-      id: node.data.id,
-      data: node.data,
-      position: {
-        x: node.y,
-        y: node.x,
-      },
+      id: node.id,
       type: "custom",
+      position: { x: depth * 250, y: nodes.length * 80 },
+      data: {
+        title: node.title,
+        summary: node.summary,
+        details: node.details,
+      },
     });
 
-    if (node.parent) {
+    if (parentId) {
       edges.push({
-        id: `e-${node.parent.data.id}-${node.data.id}`,
-        source: node.parent.data.id,
-        target: node.data.id,
+        id: `${parentId}-${node.id}`,
+        source: parentId,
+        target: node.id,
       });
     }
-  });
 
+    if (node.children) {
+      node.children.forEach((child) =>
+        traverse(child, node.id, depth + 1)
+      );
+    }
+  };
+
+  traverse(root);
   return { nodes, edges };
 }

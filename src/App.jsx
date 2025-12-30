@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ReactFlowProvider } from "reactflow";
+import { ReactFlowProvider, useReactFlow } from "reactflow";
 import data from "./data/mindmap.json";
 import { buildGraph } from "./utils/buildGraph";
 import MindMap from "./components/MindMap";
@@ -7,22 +7,32 @@ import SidePanel from "./components/SidePanel";
 import CustomNode from "./components/CustomNode";
 import Toolbar from "./components/Toolbar";
 
-export default function App() {
-  // 🔹 editable mindmap data (IMPORTANT)
-  const [mindmapData, setMindmapData] = useState(data);
+/* ---------- helper ---------- */
+const findNodeById = (node, id) => {
+  if (node.id === id) return node;
+  if (node.children) {
+    for (let child of node.children) {
+      const found = findNodeById(child, id);
+      if (found) return found;
+    }
+  }
+  return null;
+};
 
+export default function App() {
+  const [mindmapData, setMindmapData] = useState(data);
+  const [selected, setSelected] = useState(null);
+  const [collapsed, setCollapsed] = useState(new Set());
+
+  /* ---------- build full graph ---------- */
   const { nodes, edges } = buildGraph(mindmapData);
 
-  // 🔹 parent map for collapse logic
+  /* ---------- parent map ---------- */
   const parentMap = {};
   edges.forEach((e) => {
     parentMap[e.target] = e.source;
   });
 
-  const [selected, setSelected] = useState(null);
-  const [collapsed, setCollapsed] = useState(new Set());
-
-  // 🔹 nodeTypes memoized
   const nodeTypes = useMemo(
     () => ({
       custom: CustomNode,
@@ -30,19 +40,21 @@ export default function App() {
     []
   );
 
-  // 🔹 node click → select + toggle collapse
+  /* ---------- node click (select + toggle) ---------- */
   const handleNodeClick = (node) => {
     setSelected(node);
 
+    const fullNode = findNodeById(mindmapData, node.id);
+    if (!fullNode?.children?.length) return;
+
     setCollapsed((prev) => {
       const next = new Set(prev);
-      if (next.has(node.id)) next.delete(node.id);
-      else next.add(node.id);
+      next.has(node.id) ? next.delete(node.id) : next.add(node.id);
       return next;
     });
   };
 
-  // 🔹 check if node should be hidden
+  /* ---------- visibility ---------- */
   const isHidden = (nodeId) => {
     let parent = parentMap[nodeId];
     while (parent) {
@@ -52,7 +64,6 @@ export default function App() {
     return false;
   };
 
-  // 🔹 visible graph
   const visibleNodes = nodes.map((n) => ({
     ...n,
     hidden: isHidden(n.id),
@@ -63,44 +74,85 @@ export default function App() {
     hidden: isHidden(e.target),
   }));
 
-  // 🔹 toolbar actions
-  const handleExpandAll = () => {
-    setCollapsed(new Set());
+  /* ---------- toolbar actions ---------- */
+  const expandAll = () => setCollapsed(new Set());
+
+  const collapseAll = () => {
+    setCollapsed(new Set(Object.values(parentMap)));
   };
 
-  const handleCollapseAll = () => {
-    const allParents = new Set(Object.values(parentMap));
-    setCollapsed(allParents);
+  const addChildNode = () => {
+    if (!selected) return;
+
+    const newNode = {
+      id: `node-${Date.now()}`,
+      title: "New Node",
+      summary: "New summary",
+      details: "New details",
+      children: [],
+    };
+
+    const addRecursive = (node) => {
+      if (node.id === selected.id) {
+        return {
+          ...node,
+          children: [...(node.children || []), newNode],
+        };
+      }
+      if (node.children) {
+        return {
+          ...node,
+          children: node.children.map(addRecursive),
+        };
+      }
+      return node;
+    };
+
+    setMindmapData((prev) => addRecursive(prev));
+
+    // ensure parent expands
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      next.delete(selected.id);
+      return next;
+    });
   };
 
-  // 🔹 update node data (EDIT FEATURE)
+  const downloadJSON = () => {
+    const blob = new Blob(
+      [JSON.stringify(mindmapData, null, 2)],
+      { type: "application/json" }
+    );
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "mindmap.json";
+    link.click();
+  };
+
   const updateNodeData = (nodeId, updatedFields) => {
     const updateRecursive = (node) => {
-      if (node.id === nodeId) {
-        return { ...node, ...updatedFields };
-      }
-
+      if (node.id === nodeId) return { ...node, ...updatedFields };
       if (node.children) {
         return {
           ...node,
           children: node.children.map(updateRecursive),
         };
       }
-
       return node;
     };
-
     setMindmapData((prev) => updateRecursive(prev));
   };
 
   return (
     <ReactFlowProvider>
-      <div style={{ display: "flex", height: "100vh", width: "100vw" }}>
-        {/* LEFT: Mindmap */}
-        <div style={{ flex: 1, height: "100%", position: "relative" }}>
+      <div style={{ display: "flex", height: "100vh" }}>
+        {/* LEFT */}
+        <div style={{ flex: 1, position: "relative" }}>
           <Toolbar
-            onExpandAll={handleExpandAll}
-            onCollapseAll={handleCollapseAll}
+            onExpandAll={expandAll}
+            onCollapseAll={collapseAll}
+            onAddNode={addChildNode}
+            onDownload={downloadJSON}
           />
 
           <MindMap
@@ -111,7 +163,7 @@ export default function App() {
           />
         </div>
 
-        {/* RIGHT: Side Panel */}
+        {/* RIGHT */}
         <SidePanel node={selected} onUpdate={updateNodeData} />
       </div>
     </ReactFlowProvider>

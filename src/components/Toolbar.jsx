@@ -1,21 +1,20 @@
 import { useReactFlow } from "reactflow";
 
-export default function Toolbar({ onExpandAll, onCollapseAll }) {
+export default function Toolbar({
+  onExpandAll,
+  onCollapseAll,
+  onAddNode,
+  onDownload,
+}) {
   const { fitView } = useReactFlow();
 
   return (
     <div className="toolbar">
-      <button className="toolbar-btn" onClick={onExpandAll}>
-        Expand All
-      </button>
-
-      <button className="toolbar-btn" onClick={onCollapseAll}>
-        Collapse All
-      </button>
-
-      <button className="toolbar-btn primary" onClick={() => fitView()}>
-        Fit View
-      </button>
+      <button onClick={onExpandAll}>Expand All</button>
+      <button onClick={onCollapseAll}>Collapse All</button>
+      <button onClick={() => fitView()}>Fit View</button>
+      <button onClick={onAddNode}>＋ Add Node</button>
+      <button onClick={onDownload}>⬇ Download</button>
     </div>
   );
 }
