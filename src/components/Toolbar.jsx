@@ -5,9 +5,17 @@ export default function Toolbar({ onExpandAll, onCollapseAll }) {
 
   return (
     <div className="toolbar">
-      <button onClick={onExpandAll}>Expand All</button>
-      <button onClick={onCollapseAll}>Collapse All</button>
-      <button onClick={() => fitView()}>Fit View</button>
+      <button className="toolbar-btn" onClick={onExpandAll}>
+        Expand All
+      </button>
+
+      <button className="toolbar-btn" onClick={onCollapseAll}>
+        Collapse All
+      </button>
+
+      <button className="toolbar-btn primary" onClick={() => fitView()}>
+        Fit View
+      </button>
     </div>
   );
 }

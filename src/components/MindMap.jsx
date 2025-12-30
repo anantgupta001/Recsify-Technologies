@@ -1,4 +1,4 @@
-import ReactFlow, { Background, Controls } from "reactflow";
+import ReactFlow, { Background } from "reactflow";
 import "reactflow/dist/style.css";
 
 export default function MindMap({
@@ -14,9 +14,9 @@ export default function MindMap({
       nodeTypes={nodeTypes}
       fitView
       onNodeClick={(_, node) => onNodeClick(node.data)}
+      proOptions={{ hideAttribution: true }}
     >
       <Background />
-      <Controls />
     </ReactFlow>
   );
 }

@@ -20,7 +20,8 @@ export default function SidePanel({ node, onUpdate }) {
   if (!node) {
     return (
       <div className="panel">
-        <h3>Select a node</h3>
+        <h3 className="panel-title">Node Details</h3>
+        <p className="panel-muted">Select a node to view or edit details</p>
       </div>
     );
   }
@@ -31,36 +32,46 @@ export default function SidePanel({ node, onUpdate }) {
 
   const handleSave = () => {
     onUpdate(node.id, form);
-    alert("Node updated");
   };
 
   return (
     <div className="panel">
-      <h2>Edit Node</h2>
+      <h3 className="panel-title">Edit Node</h3>
 
-      <label>Title</label>
-      <input
-        name="title"
-        value={form.title}
-        onChange={handleChange}
-      />
+      <div className="form-group">
+        <label>Title</label>
+        <input
+          name="title"
+          value={form.title}
+          onChange={handleChange}
+          placeholder="Enter node title"
+        />
+      </div>
 
-      <label>Summary</label>
-      <input
-        name="summary"
-        value={form.summary}
-        onChange={handleChange}
-      />
+      <div className="form-group">
+        <label>Summary</label>
+        <input
+          name="summary"
+          value={form.summary}
+          onChange={handleChange}
+          placeholder="Short summary (shown on hover)"
+        />
+      </div>
 
-      <label>Details</label>
-      <textarea
-        name="details"
-        value={form.details}
-        onChange={handleChange}
-        rows={4}
-      />
+      <div className="form-group">
+        <label>Details</label>
+        <textarea
+          name="details"
+          value={form.details}
+          onChange={handleChange}
+          rows={5}
+          placeholder="Detailed explanation of this node"
+        />
+      </div>
 
-      <button onClick={handleSave}>Save</button>
+      <button className="save-btn" onClick={handleSave}>
+        Save Changes
+      </button>
     </div>
   );
 }
