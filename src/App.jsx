@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ReactFlowProvider, useReactFlow } from "reactflow";
+import { ReactFlowProvider } from "reactflow";
 import data from "./data/mindmap.json";
 import { buildGraph } from "./utils/buildGraph";
 import MindMap from "./components/MindMap";
@@ -23,15 +23,13 @@ export default function App() {
   const [mindmapData, setMindmapData] = useState(data);
   const [selected, setSelected] = useState(null);
   const [collapsed, setCollapsed] = useState(new Set());
+  const [isPanelOpen, setIsPanelOpen] = useState(true);
 
-  /* ---------- build full graph ---------- */
   const { nodes, edges } = buildGraph(mindmapData);
 
   /* ---------- parent map ---------- */
   const parentMap = {};
-  edges.forEach((e) => {
-    parentMap[e.target] = e.source;
-  });
+  edges.forEach((e) => (parentMap[e.target] = e.source));
 
   const nodeTypes = useMemo(
     () => ({
@@ -40,7 +38,7 @@ export default function App() {
     []
   );
 
-  /* ---------- node click (select + toggle) ---------- */
+  /* ---------- node click ---------- */
   const handleNodeClick = (node) => {
     setSelected(node);
 
@@ -53,6 +51,21 @@ export default function App() {
       return next;
     });
   };
+
+  /* ---------- highlight ---------- */
+  const getRelatedNodeIds = (nodeId) => {
+    const related = new Set([nodeId]);
+    const parent = parentMap[nodeId];
+    if (parent) related.add(parent);
+    edges.forEach((e) => {
+      if (e.source === nodeId) related.add(e.target);
+    });
+    return related;
+  };
+
+  const relatedIds = selected
+    ? getRelatedNodeIds(selected.id)
+    : new Set();
 
   /* ---------- visibility ---------- */
   const isHidden = (nodeId) => {
@@ -67,19 +80,33 @@ export default function App() {
   const visibleNodes = nodes.map((n) => ({
     ...n,
     hidden: isHidden(n.id),
+    data: {
+      ...n.data,
+      highlighted: relatedIds.has(n.id),
+    },
   }));
 
   const visibleEdges = edges.map((e) => ({
     ...e,
     hidden: isHidden(e.target),
+    style: {
+      stroke:
+        selected &&
+        (e.source === selected.id || e.target === selected.id)
+          ? "#94a3b8"
+          : "#e5e7eb",
+      strokeWidth:
+        selected &&
+        (e.source === selected.id || e.target === selected.id)
+          ? 1.2
+          : 0.5,
+    },
   }));
 
   /* ---------- toolbar actions ---------- */
   const expandAll = () => setCollapsed(new Set());
-
-  const collapseAll = () => {
+  const collapseAll = () =>
     setCollapsed(new Set(Object.values(parentMap)));
-  };
 
   const addChildNode = () => {
     if (!selected) return;
@@ -109,8 +136,6 @@ export default function App() {
     };
 
     setMindmapData((prev) => addRecursive(prev));
-
-    // ensure parent expands
     setCollapsed((prev) => {
       const next = new Set(prev);
       next.delete(selected.id);
@@ -129,9 +154,9 @@ export default function App() {
     link.click();
   };
 
-  const updateNodeData = (nodeId, updatedFields) => {
+  const updateNodeData = (id, fields) => {
     const updateRecursive = (node) => {
-      if (node.id === nodeId) return { ...node, ...updatedFields };
+      if (node.id === id) return { ...node, ...fields };
       if (node.children) {
         return {
           ...node,
@@ -164,7 +189,12 @@ export default function App() {
         </div>
 
         {/* RIGHT */}
-        <SidePanel node={selected} onUpdate={updateNodeData} />
+        <SidePanel
+          node={selected}
+          onUpdate={updateNodeData}
+          isOpen={isPanelOpen}
+          onToggle={() => setIsPanelOpen((p) => !p)}
+        />
       </div>
     </ReactFlowProvider>
   );

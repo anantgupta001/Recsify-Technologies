@@ -6,7 +6,10 @@ export function buildGraph(root) {
     nodes.push({
       id: node.id,
       type: "custom",
-      position: { x: depth * 250, y: nodes.length * 80 },
+      position: {
+        x: depth * 260,
+        y: nodes.length * 80,
+      },
       data: {
         title: node.title,
         summary: node.summary,
