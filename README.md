@@ -1,3 +1,12 @@
+<img width="1600" height="832" alt="image" src="https://github.com/user-attachments/assets/359ff257-3018-432b-8351-a4009939a7f5" />
+<img width="1600" height="847" alt="image" src="https://github.com/user-attachments/assets/c5e47981-71bd-4150-81db-d89a439742e3" />
+<img width="1600" height="847" alt="image" src="https://github.com/user-attachments/assets/f63958f0-e3fa-459e-b29c-37c9480b56b1" />
+<img width="1600" height="848" alt="image" src="https://github.com/user-attachments/assets/1a590004-0e90-47a5-a357-b1018194eb95" />
+
+https://github.com/user-attachments/assets/97a7c6a6-fd72-449e-b560-602af50de6fd
+
+
+
 # 🧠 Interactive Mindmap UI
 
 An interactive, data-driven mindmap application built to visualize hierarchical information with rich user interactions, clean UX, and maintainable frontend architecture.
